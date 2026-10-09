@@ -1,0 +1,42 @@
+﻿
+using PetPal.Helpers;
+using PetPal.Models.Db;
+using PetPal.Repository.Interfaces;
+using PetPal.Services.Interfaces;
+using System.Threading.Tasks;
+
+namespace PetPal.Services
+{
+    public class UserService : IUserService
+    {
+        private readonly IUserRepository _userRepository;
+
+        public UserService(IUserRepository userRepository)
+        {
+            _userRepository = userRepository;
+        }
+
+        public async Task<User> Get(string email)
+        {
+            ValidationHelper.ValidateEmail(email);
+            return await _userRepository.Get(email);
+        }
+
+        public async Task<User> Get(int id)
+        {
+            ValidationHelper.ValidatePositiveInt(id, "User Id");
+            return await _userRepository.Get(id);
+        }
+
+        public async Task<int> Create(User user)
+        {
+            ValidationHelper.ValidateNull(user, "User");
+            ValidationHelper.ValidateString(user.Name, "User Name");
+            ValidationHelper.ValidateString(user.PhoneNumber, "User Phone Number");
+            ValidationHelper.ValidateEmail(user.Email);
+            ValidationHelper.ValidatePassword(user.Password);
+
+            return await _userRepository.Create(user);
+        }
+    }
+}
