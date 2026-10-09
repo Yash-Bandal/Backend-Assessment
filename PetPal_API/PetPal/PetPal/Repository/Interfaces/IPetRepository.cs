@@ -10,5 +10,7 @@ namespace PetPal.Repository.Interfaces
         Task<IEnumerable<Pet>> Get(PetFilter filter);
         Task<Pet> Get(int petId);
         Task<IEnumerable<Pet>> GetByOwnerId(int userId);
+
+        Task<IEnumerable<Pet>> GetByOwnerIds(IEnumerable<int> userIds);
     }
 }

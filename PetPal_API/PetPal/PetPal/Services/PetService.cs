@@ -31,10 +31,18 @@ namespace PetPal.Services
 
             return pet;
         }
+
         public async Task<IEnumerable<Pet>> GetByOwnerId(int userId)
         {
             ValidationHelper.ValidatePositiveInt(userId, "User Id");
             return await _petRepository.GetByOwnerId(userId);
+        }
+
+
+        public async Task<IEnumerable<Pet>> GetByOwnerIds(IEnumerable<int> userIds)
+        {
+            ValidationHelper.ValidateList(userIds, "User List");
+            return await _petRepository.GetByOwnerIds(userIds);
         }
     }
 }

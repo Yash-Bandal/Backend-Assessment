@@ -1,5 +1,4 @@
-﻿
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PetPal.Models.Responses;
 using PetPal.Services.Interfaces;
@@ -31,5 +30,20 @@ namespace PetPal.Controllers
                 data = new { Id = requestId }
             });
         }
+
+
+        [HttpGet("~/api/pets/{petId}/best-adopter")]
+        public async Task<IActionResult> GetBestAdopter(int petId)
+        {
+            var result = await _adoptionRequestService.GetBestAdopter(petId);
+
+            return Ok(new ApiResponse<BestAdopterResponse>
+            {
+                Success = true,
+                Message = "Best adopter fetched successfully",
+                data = result
+            });
+        }
+
     }
 }

@@ -3,6 +3,7 @@ using PetPal.Helpers;
 using PetPal.Models.Db;
 using PetPal.Repository.Interfaces;
 using PetPal.Services.Interfaces;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace PetPal.Services
@@ -37,6 +38,12 @@ namespace PetPal.Services
             ValidationHelper.ValidatePassword(user.Password);
 
             return await _userRepository.Create(user);
+        }
+
+        public async Task<IEnumerable<User>> GetByIds(IEnumerable<int> userIds)
+        {
+            ValidationHelper.ValidateList(userIds, "User List");
+            return await _userRepository.GetByIds(userIds);
         }
     }
 }

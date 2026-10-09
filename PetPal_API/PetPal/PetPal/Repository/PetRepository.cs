@@ -4,6 +4,7 @@ using PetPal.Models.Db;
 using PetPal.Models.Filters;
 using PetPal.Repository.Interfaces;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace PetPal.Repository
@@ -75,6 +76,33 @@ namespace PetPal.Repository
 
             return await QueryAsync(query, new { UserId = userId });
         }
+
+
+        public async Task<IEnumerable<Pet>> GetByOwnerIds(
+            IEnumerable<int> userIds)
+        {
+            var ids = userIds.Distinct().ToArray();
+
+            if (ids.Length == 0)
+                return Enumerable.Empty<Pet>();
+
+            const string query = @"
+                        SELECT
+                            Id,
+                            Name,
+                            Gender,
+                            Description,
+                            BreedId,
+                            OwnerId,
+                            DateOfBirth,
+                            IsAvailable,
+                            CreatedAt
+                        FROM Pets
+                        WHERE OwnerId IN @UserIds;";
+
+            return await QueryAsync(query, new { UserIds = ids });
+        }
+
 
     }
 }
