@@ -1,0 +1,16 @@
+# PetPal 
+
+## 1.Fetch all available pets for adoption
+GET /api/pets?isAvailable=true
+
+## 2.Fetch all pets owned by a specific user
+GET /api/users/{userId}/pets
+
+## 3.Fetch all adoption requests for a pet
+GET /api/pets/{petId}/adoption-requests
+
+## 4.Create a new adoption request for a pet
+POST /api/pets/{petId}/adoption-requests
+
+## 5.Approve an adoption request
+PATCH /api/adoption-requests/{requestId}/approve
