@@ -136,5 +136,23 @@ namespace PetPal.Repository
                 BreedId = breedId
             });
         }
+
+        public async Task<bool> Exists(int applicantId, int petId)
+        {
+            const string query = @"
+                    SELECT 
+                        COUNT(*)
+                    FROM AdoptionRequests
+                    WHERE ApplicantId = @ApplicantId
+                        AND PetId = @PetId;";
+
+            var count = await ExecuteScalarAsync<int>(query, new
+            {
+                ApplicantId = applicantId,
+                PetId = petId
+            });
+
+            return count > 0;
+        }
     }
 }

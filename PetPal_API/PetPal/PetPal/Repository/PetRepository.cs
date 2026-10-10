@@ -61,18 +61,18 @@ namespace PetPal.Repository
         public async Task<IEnumerable<Pet>> GetByOwnerId(int userId)
         {
             const string query = @"
-                                SELECT
-                                    Id,
-                                    Name,
-                                    Gender,
-                                    Description,
-                                    BreedId,
-                                    OwnerId,
-                                    DateOfBirth,
-                                    IsAvailable,
-                                    CreatedAt
-                                FROM Pets
-                                WHERE OwnerId = @UserId";
+                        SELECT
+                            Id,
+                            Name,
+                            Gender,
+                            Description,
+                            BreedId,
+                            OwnerId,
+                            DateOfBirth,
+                            IsAvailable,
+                            CreatedAt
+                        FROM Pets
+                        WHERE OwnerId = @UserId";
 
             return await QueryAsync(query, new { UserId = userId });
         }

@@ -1,11 +1,11 @@
-﻿
+﻿using System;
 using Microsoft.AspNetCore.Http;
 using PetPal.Helpers;
+using PetPal.Models;
 using PetPal.Models.Db;
 using PetPal.Models.Responses;
 using PetPal.Repository.Interfaces;
 using PetPal.Services.Interfaces;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -37,8 +37,7 @@ namespace PetPal.Services
         {
             ValidationHelper.ValidatePositiveInt(petId, "Pet Id");
 
-            var userIdClaim = _httpContextAccessor.HttpContext?
-                .User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userIdClaim = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (!int.TryParse(userIdClaim, out int applicantId))
             {
@@ -58,6 +57,14 @@ namespace PetPal.Services
                 throw new ValidationException("You cannot request adoption of your own pet.");
             }
 
+
+            // Prevent duplicate adoption requests
+            if (await _adoptionRequestRepository.Exists(applicantId, petId))
+            {
+                throw new ValidationException("You have already submitted an adoption request for this pet.");
+            }
+
+
             var request = new AdoptionRequest
             {
                 ApplicantId = applicantId,
@@ -66,8 +73,6 @@ namespace PetPal.Services
 
             return await _adoptionRequestRepository.Create(request);
         }
-
-
 
         public async Task<BestAdopterResponse> GetBestAdopter(int petId)
         {
@@ -102,19 +107,21 @@ namespace PetPal.Services
                 .ToDictionary(g => g.Key, g => g.ToList());
 
             // 6. Fetch rejected-request counts.
-            var rejectedCounts =
-                await _adoptionRequestRepository.GetRejectedCounts(userIds);
+            var rejectedCounts = await _adoptionRequestRepository.GetRejectedCounts(userIds);
 
             // 7. Find applicants with pending requests for the same breed.
             var usersWithPendingBreedRequest =
                 (await _adoptionRequestRepository.GetUsersWithPendingBreedRequest(
-                    userIds, pet.BreedId, pet.Id))
+                    userIds,
+                    pet.BreedId,
+                    pet.Id))
                 .ToHashSet();
 
             // 8. Find applicants who previously adopted the same breed.
             var usersWhoAdoptedSameBreed =
                 (await _adoptionRequestRepository.GetUsersWhoAdoptedBreed(
-                    userIds, pet.BreedId))
+                    userIds,
+                    pet.BreedId))
                 .ToHashSet();
 
             var candidates = new List<BestAdopterCandidate>();
@@ -123,7 +130,9 @@ namespace PetPal.Services
             foreach (var request in requests)
             {
                 if (!users.TryGetValue(request.ApplicantId, out var user))
+                {
                     continue;
+                }
 
                 var userPets = petsByOwner.TryGetValue(user.Id, out var pets)
                     ? pets
@@ -133,12 +142,16 @@ namespace PetPal.Services
 
                 // Rule 1: Exclude applicants who own more than 3 pets.
                 if (ownedPetsCount > 3)
+                {
                     continue;
+                }
 
                 // Rule 2: Exclude applicants with a pending request
                 // for another pet of the same breed.
                 if (usersWithPendingBreedRequest.Contains(user.Id))
+                {
                     continue;
+                }
 
                 rejectedCounts.TryGetValue(user.Id, out int rejectedCount);
 
@@ -148,14 +161,15 @@ namespace PetPal.Services
                     Request = request,
                     OwnedPetsCount = ownedPetsCount,
                     RejectedCount = rejectedCount,
-                    HasAdoptedSameBreed =
-                        usersWhoAdoptedSameBreed.Contains(user.Id)
+                    HasAdoptedSameBreed = usersWhoAdoptedSameBreed.Contains(user.Id)
                 });
             }
 
             // 10. Return null if nobody qualifies.
             if (!candidates.Any())
+            {
                 return null;
+            }
 
             // 11. Rank candidates using the specified priorities.
             var bestCandidate = candidates
@@ -171,7 +185,9 @@ namespace PetPal.Services
                 .FirstOrDefault();
 
             if (bestCandidate == null)
+            {
                 return null;
+            }
 
             // 12. Return the best adopter's details.
             return new BestAdopterResponse
@@ -182,15 +198,6 @@ namespace PetPal.Services
             };
         }
 
-
-        private class BestAdopterCandidate
-        {
-            public User User { get; set; }
-            public AdoptionRequest Request { get; set; }
-            public int OwnedPetsCount { get; set; }
-            public int RejectedCount { get; set; }
-            public bool HasAdoptedSameBreed { get; set; }
-        }
 
     }
 }

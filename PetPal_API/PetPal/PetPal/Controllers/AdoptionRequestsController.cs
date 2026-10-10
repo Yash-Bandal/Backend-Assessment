@@ -31,7 +31,7 @@ namespace PetPal.Controllers
             });
         }
 
-
+        [Authorize]
         [HttpGet("~/api/pets/{petId}/best-adopter")]
         public async Task<IActionResult> GetBestAdopter(int petId)
         {
@@ -40,7 +40,7 @@ namespace PetPal.Controllers
             return Ok(new ApiResponse<BestAdopterResponse>
             {
                 Success = true,
-                Message = "Best adopter fetched successfully",
+                Message = "Best adopter Results",
                 data = result
             });
         }

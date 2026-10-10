@@ -18,5 +18,7 @@ namespace PetPal.Repository.Interfaces
         Task<IEnumerable<int>> GetUsersWhoAdoptedBreed(
             IEnumerable<int> userIds,
             int breedId);
+
+        Task<bool> Exists(int applicantId, int petId);
     }
 }

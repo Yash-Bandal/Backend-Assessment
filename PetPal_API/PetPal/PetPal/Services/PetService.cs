@@ -19,7 +19,7 @@ namespace PetPal.Services
 
         public async Task<IEnumerable<Pet>> Get(PetFilter filter)
         {
-            filter.IsAvailable ??= true;
+            //filter.IsAvailable ??= true;
             return await _petRepository.Get(filter);
         }
 

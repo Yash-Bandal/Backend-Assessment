@@ -45,6 +45,10 @@ namespace PetPal.Middlewares
                     statusCode = (int)HttpStatusCode.BadRequest;
                     break;
 
+                case UnauthorizedAccessException:
+                    statusCode = (int)HttpStatusCode.Unauthorized;
+                    break;
+
                 default:
                     statusCode = (int)HttpStatusCode.InternalServerError;
                     break;

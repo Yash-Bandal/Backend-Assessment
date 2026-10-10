@@ -1,5 +1,4 @@
-﻿
-using PetPal.Helpers;
+﻿using PetPal.Helpers;
 using PetPal.Models.Db;
 using PetPal.Repository.Interfaces;
 using PetPal.Services.Interfaces;
