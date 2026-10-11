@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PetPal.Models.Authentication.Requests;
 using PetPal.Models.Authentication.Responses;
 using PetPal.Models.Responses;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 namespace PetPal.Controllers
 {
     [ApiController]
+    [AllowAnonymous]
     [Route("api/auth")]
     public class AuthController : ControllerBase
     {

@@ -3,6 +3,7 @@ using PetPal.Models.Db;
 using PetPal.Repository.Interfaces;
 using PetPal.Services.Interfaces;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace PetPal.Services
@@ -20,12 +21,6 @@ namespace PetPal.Services
         {
             ValidationHelper.ValidateEmail(email);
             return await _userRepository.Get(email);
-        }
-
-        public async Task<User> Get(int id)
-        {
-            ValidationHelper.ValidatePositiveInt(id, "User Id");
-            return await _userRepository.Get(id);
         }
 
         public async Task<int> Create(User user)

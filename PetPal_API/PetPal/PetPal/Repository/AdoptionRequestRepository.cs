@@ -58,14 +58,8 @@ namespace PetPal.Repository
             public int RejectedCount { get; set; }
         }
 
-        public async Task<Dictionary<int, int>> GetRejectedCounts(
-            IEnumerable<int> userIds)
+        public async Task<Dictionary<int, int>> GetRejectedCounts(IEnumerable<int> userIds)
         {
-            var ids = userIds.Distinct().ToArray();
-
-            if (ids.Length == 0)
-                return new Dictionary<int, int>();
-
             const string query = @"
                      SELECT 
                         ApplicantId,
@@ -75,15 +69,16 @@ namespace PetPal.Repository
                         AND Status = 'Rejected'
                      GROUP BY ApplicantId;";
 
-            var rows = await QueryAsync<RejectedCountRow>(
-                query, new { UserIds = ids });
+            var rows = await QueryAsync<RejectedCountRow>(query, new { UserIds = userIds });
 
-            return rows.ToDictionary(
-                x => x.ApplicantId,
-                x => x.RejectedCount);
+            return rows.ToDictionary
+                (
+                    x => x.ApplicantId,
+                    x => x.RejectedCount
+                );
         }
 
-        // Find applicants with pending requests for the same breed
+        // Find applicants with pending reqs for the same pet breed, but not this target pet
         public async Task<IEnumerable<int>> GetUsersWithPendingBreedRequest(
             IEnumerable<int> userIds,
             int breedId,
@@ -96,13 +91,14 @@ namespace PetPal.Repository
 
             const string query = @"
                   SELECT DISTINCT
-                    ar.ApplicantId
-                  FROM AdoptionRequests ar
-                    INNER JOIN Pets p ON p.Id = ar.PetId
-                  WHERE ar.ApplicantId IN @UserIds
-                      AND ar.Status = 'Pending'
-                      AND p.BreedId = @BreedId
-                      AND p.Id <> @CurrentPetId;";
+                    AR.ApplicantId
+                  FROM AdoptionRequests AR
+                    INNER JOIN Pets P 
+                  ON P.Id = AR.PetId
+                  WHERE AR.ApplicantId IN @UserIds
+                      AND AR.Status = 'Pending'
+                      AND P.BreedId = @BreedId
+                      AND P.Id <> @CurrentPetId;";
 
             return await QueryAsync<int>(query, new
             {
@@ -116,11 +112,6 @@ namespace PetPal.Repository
         // 4. Find applicants who previously adopted the same breed
         public async Task<IEnumerable<int>> GetUsersWhoAdoptedBreed(IEnumerable<int> userIds, int breedId)
         {
-            var ids = userIds.Distinct().ToArray();
-
-            if (ids.Length == 0)
-                return Enumerable.Empty<int>();
-
             const string query = @"
                     SELECT DISTINCT
                         ar.ApplicantId
@@ -130,11 +121,12 @@ namespace PetPal.Repository
                         AND ar.Status = 'Approved'
                         AND p.BreedId = @BreedId;";
 
-            return await QueryAsync<int>(query, new
-            {
-                UserIds = ids,
-                BreedId = breedId
-            });
+            return await QueryAsync<int>(query, 
+                new
+                {
+                    UserIds = userIds,
+                    BreedId = breedId
+                });
         }
 
         public async Task<bool> Exists(int applicantId, int petId)

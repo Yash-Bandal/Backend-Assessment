@@ -31,21 +31,6 @@ namespace PetPal.Repository
             return await QuerySingleAsync(query, new { Email = email });
         }
 
-        public async Task<User> Get(int id)
-        {
-            const string query = @"
-                            SELECT 
-                                Id,
-	                            Name,
-	                            Email,
-	                            Password,
-	                            PhoneNumber,
-	                            CreatedAt
-                            FROM Users
-                            WHERE Id = @Id";
-
-            return await QuerySingleAsync(query, new { Id = id });
-        }
 
         public async Task<int> Create(User user)
         {
@@ -70,16 +55,8 @@ namespace PetPal.Repository
             return await ExecuteScalarAsync<int>(query, user);
         }
 
-
-
-        public async Task<IEnumerable<User>> GetByIds(
-            IEnumerable<int> userIds)
+        public async Task<IEnumerable<User>> GetByIds(IEnumerable<int> userIds)
         {
-            var ids = userIds.Distinct().ToArray();
-
-            if (ids.Length == 0)
-                return Enumerable.Empty<User>();
-
             const string query = @"
                             SELECT
                                 Id,
@@ -91,7 +68,7 @@ namespace PetPal.Repository
                             FROM Users
                             WHERE Id IN @UserIds;;";
 
-            return await QueryAsync(query, new { UserIds = ids });
+            return await QueryAsync(query, new { UserIds = userIds });
         }
 
     }

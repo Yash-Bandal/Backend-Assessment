@@ -31,6 +31,7 @@ namespace PetPal.Controllers
             });
         }
 
+
         [Authorize]
         [HttpGet("~/api/pets/{petId}/best-adopter")]
         public async Task<IActionResult> GetBestAdopter(int petId)

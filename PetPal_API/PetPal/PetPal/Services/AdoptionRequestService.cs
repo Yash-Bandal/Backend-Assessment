@@ -79,16 +79,18 @@ namespace PetPal.Services
             // 1. Fetch the pet and validate its existence.
             var pet = await _petService.Get(petId);
 
-            // 2. Fetch all adoption requests for this pet.
-            var requests = (await _adoptionRequestRepository.GetByPetId(petId))
+            // 2. Fetch all pending adoption requests for this pet.
+            var pendingRequests = (await _adoptionRequestRepository.GetByPetId(petId))
                 .Where(r => r.Status == "Pending")
                 .ToList();
 
-            if (!requests.Any())
+            if (!pendingRequests.Any())
+            {
                 return null;
+            }
 
             // 3. Get distinct applicant IDs.
-            var userIds = requests
+            var userIds = pendingRequests
                 .Select(r => r.ApplicantId)
                 .Distinct()
                 .ToArray();
@@ -107,7 +109,7 @@ namespace PetPal.Services
                 .ToDictionary(g => g.Key, g => g.ToList());
 
             // 6. Fetch rejected-request counts.
-            var rejectedCounts = await _adoptionRequestRepository.GetRejectedCounts(userIds);
+            var rejectedCountsDict = await _adoptionRequestRepository.GetRejectedCounts(userIds);
 
             // 7. Find applicants with pending requests for the same breed.
             var usersWithPendingBreedRequest =
@@ -127,7 +129,7 @@ namespace PetPal.Services
             var candidates = new List<BestAdopterCandidate>();
 
             // 9. Filter and prepare eligible candidates.
-            foreach (var request in requests)
+            foreach (var request in pendingRequests)
             {
                 if (!users.TryGetValue(request.ApplicantId, out var user))
                 {
@@ -153,7 +155,7 @@ namespace PetPal.Services
                     continue;
                 }
 
-                rejectedCounts.TryGetValue(user.Id, out int rejectedCount);
+                rejectedCountsDict.TryGetValue(user.Id, out int rejectedCount);
 
                 candidates.Add(new BestAdopterCandidate
                 {
@@ -175,12 +177,12 @@ namespace PetPal.Services
             var bestCandidate = candidates
                 // Deprioritize applicants with more than 2 rejections.
                 .OrderBy(c => c.RejectedCount > 2 ? 1 : 0)
-                // Primary criteria.
+                // Primary criteria. - bool true first
                 .ThenByDescending(c => c.HasAdoptedSameBreed)
                 .ThenByDescending(c => c.OwnedPetsCount > 0)
                 .ThenBy(c => c.User.CreatedAt)
-                // Tie-breakers.
-                .ThenBy(c => c.OwnedPetsCount)
+                // Tie-breakers.  (Eligible -> Post Filter)
+                .ThenBy(c => c.OwnedPetsCount)  
                 .ThenBy(c => c.Request.RequestedAt)
                 .FirstOrDefault();
 

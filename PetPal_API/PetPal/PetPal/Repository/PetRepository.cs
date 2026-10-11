@@ -78,14 +78,8 @@ namespace PetPal.Repository
         }
 
 
-        public async Task<IEnumerable<Pet>> GetByOwnerIds(
-            IEnumerable<int> userIds)
+        public async Task<IEnumerable<Pet>> GetByOwnerIds(IEnumerable<int> userIds)
         {
-            var ids = userIds.Distinct().ToArray();
-
-            if (ids.Length == 0)
-                return Enumerable.Empty<Pet>();
-
             const string query = @"
                         SELECT
                             Id,
@@ -100,7 +94,7 @@ namespace PetPal.Repository
                         FROM Pets
                         WHERE OwnerId IN @UserIds;";
 
-            return await QueryAsync(query, new { UserIds = ids });
+            return await QueryAsync(query, new { UserIds = userIds });
         }
 
 

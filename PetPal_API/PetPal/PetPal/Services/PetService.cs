@@ -19,7 +19,11 @@ namespace PetPal.Services
 
         public async Task<IEnumerable<Pet>> Get(PetFilter filter)
         {
-            //filter.IsAvailable ??= true;
+            //if (filter.IsAvailable == null)
+            //{
+            //    filter.IsAvailable = true;
+            //}
+
             return await _petRepository.Get(filter);
         }
 
@@ -37,7 +41,6 @@ namespace PetPal.Services
             ValidationHelper.ValidatePositiveInt(userId, "User Id");
             return await _petRepository.GetByOwnerId(userId);
         }
-
 
         public async Task<IEnumerable<Pet>> GetByOwnerIds(IEnumerable<int> userIds)
         {
